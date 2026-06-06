@@ -1,14 +1,27 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { QueueService } from './queue.service';
 import { WaitlistEntry } from './entities/waitlist-entry.entity';
 import { AddToWaitlistDto } from './dto/add-to-waitlist.dto';
 import { ChangeStatusDto } from './dto/change-status.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('queue')
 export class QueueController {
   constructor(private readonly service: QueueService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('staff', 'admin')
   async addToWaitlist(@Body() body: AddToWaitlistDto): Promise<WaitlistEntry> {
     return this.service.addToWaitlist(
       body.name,
@@ -18,6 +31,8 @@ export class QueueController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('staff', 'admin')
   async getWaitlist(): Promise<WaitlistEntry[]> {
     return this.service.getWaitlist();
   }
@@ -31,6 +46,8 @@ export class QueueController {
   }
 
   @Patch(':phoneNumber/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('staff', 'admin')
   async changeStatus(
     @Param('phoneNumber') phoneNumber: string,
     @Body() body: ChangeStatusDto,
